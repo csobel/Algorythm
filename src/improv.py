@@ -1,4 +1,5 @@
 from music21 import *
+import random
 
 def createHarmony(chordStrs, num_repeats = 1):
     """
@@ -8,29 +9,82 @@ def createHarmony(chordStrs, num_repeats = 1):
     s = stream.Part()
     for _ in range(num_repeats):
         chords = map(harmony.ChordSymbol, chordStrs)
+        longRest = True
         for c in chords:
-            c.duration = duration.Duration(1.5)
+            c.duration = duration.Duration(1.0 if longRest else 1.5)
             r = note.Rest()
-            r.duration = duration.Duration(0.5)
+            r.duration = duration.Duration(1.0 if longRest else 0.5)
             s.append(c)
             s.append(r)
+            longRest = not longRest
     return s
 
-def closestPitch(mchord, mnote):
+def scaleInRange(lower, upper, keyStr = "C"):
     """
-    finds the pitch in mchord that is closest to mnote
+    returns all the pitches in key k between lower and upper
     """
-    mnoteInt = mnote.octave*12 + mnote.pitchClass
+    return scale.MajorScale(keyStr).getPitches(lower, upper)
+
+def closestPitch(mchord, mnote, src=""):
+    """
+    finds the pitch in mchord that is closest to mnote,
+    but not equal to mnote
+    """
     mpitches = mchord.pitches
-    pitchInts = [mpitch.octave*12 + mpitch.pitchClass for mpitch in mpitches]
-    pitchInts = [p for p in pitchInts if p != mnoteInt]
-    print "chord: {} and note: {}".format(pitchInts, mnoteInt)
-    retInt = min(pitchInts, key=lambda x:abs(x-mnoteInt))
+    pitchInts = [i*12 + mpitch.pitchClass for i in range(3,7) for mpitch in mpitches]
+    pitchInts = [p for p in pitchInts if p != mnote.midi]
+    retInt = min(pitchInts, key=lambda x:abs(x-mnote.midi))
     retPitch = pitch.Pitch()
-    retPitch.pitchClass = retInt % 12
-    retPitch.octave = retInt / 12
+    retPitch.midi = retInt
     return retPitch
     
+def pickPitch(curr_note, dest_chord):
+    """
+    given a current note, curr note and
+    the chord we need to end up on. Pick
+    a pitch from that chord.
+    """
+    # just uniformly pick something in a one octave range
+    # surronding the note
+    delta = random.randint(-6, 6)
+    trans_note = curr_note.transpose(delta)
+    result = closestPitch(dest_chord, trans_note, 'pickPitch')
+    return result
+    
+
+def next(part, curr_note, next_chord):
+    """
+    given a current note and a destination chord,
+    advances the piece by 2 notes. Updates part
+    to include these two notes and returns the next 
+    recommended note to play
+    """
+    print "next input {}".format(curr_note.midi)
+    part.append(curr_note)
+    target = note.Note()
+    target.duration = duration.Duration(1.0)
+    target.pitch = pickPitch(curr_note, next_chord)
+    intermediate = note.Note()
+    intermediate.duration = duration.Duration(1.0)
+    if abs(target.midi - curr_note.midi) < 2:
+        intermediate.pitch = closestPitch(next_chord, target, 'next')
+    else:
+        if random.randint(0,1):
+            delta = -1 if curr_note.midi < target.midi else 1
+            intermediate.pitch = target.pitch.transpose(delta)
+        else:
+            if curr_note.midi < target.midi:
+                pitchChoices = scaleInRange(curr_note, target)
+            else:
+                pitchChoices = scaleInRange(target, curr_note)
+            if len(pitchChoices) > 0:
+                intermediate.pitch = pitchChoices[random.randint(0,len(pitchChoices)-1)]
+            else:
+                intermediate.pitch = target.pitch # TODO, this is kinda arbitrary, but fixes bug!
+    part.append(intermediate)
+    print "next output {} \n".format(target.pitch.midi)
+    return target # return next note to play
+
 
 def createSolo(chordProg, num_measures):
     """
@@ -41,18 +95,13 @@ def createSolo(chordProg, num_measures):
     solo = stream.Part()
     if type(chordProg[0]) == type(''):
         chordProg = map(harmony.ChordSymbol, chordProg)
-    curr_note = None # for now
+    curr_note = note.Note()
+    curr_note.duration = duration.Duration(1.0)
+    curr_note.pitch = chordProg[0].root().transpose(12)
     for measure_num in range(num_measures):
-        for i in range(4): # iterate by quater note
-            curr_chord = chordProg[(2*measure_num + i/2) % len(chordProg)]
-            next_note = note.Note()
-            if curr_note is None:
-                next_note.pitch = curr_chord.root()
-            else:
-                next_note.pitch = closestPitch(curr_chord, curr_note)
-            next_note.duration = duration.Duration(1.0)
-            solo.append(next_note)
-            curr_note = next_note
+        for i in range(2): #iterate by half note
+            next_chord = chordProg[(1 + 2*measure_num + i) % len(chordProg)]
+            curr_note = next(solo, curr_note, next_chord)
     return solo
                 
         
