@@ -130,3 +130,142 @@ def IGotRhythm():
 		for c in part:
 			harm.append(c)
 	return (harm, melody)
+
+def AutumnLeaves():
+	melodyA = [
+		_note("C5", 4.0),
+
+		_note("C5", 1.0),
+		_note("D4", 1.0),
+		_note("E4", 1.0),
+		_note("F#4", 1.0),
+
+		_note("B4", 2.0),
+		_note("B4", 2.0),
+
+		_note("B4", 1.0),
+		_note("C4", 1.0),
+		_note("D4", 1.0),
+		_note("E4", 1.0),
+
+		_note("A4", 4.0),
+
+		_note("A4", 1.0),
+		_note("B3", 1.0),
+		_note("C#4", 1.0),
+		_note("D#4", 1.0),
+
+		_note("G4", 4.0),
+
+		_rest(1.0),
+		_note("E4", 1.0),
+		_note("F#4", 1.0),
+		_note("G4", 1.0)
+	]
+
+	melodyB = [
+		_note("F#4", 1.0),
+		_note("B3", 1.0),
+		_note("F#4", 2.0),
+
+		_note("F#4", 1.0),
+		_note("F#4", 1.0),
+		_note("E4", 1.0),
+		_note("F#4", 1.0),
+
+		_note("G4", 4.0),
+
+		_note("G", 1.0),
+		_note("G", 1.0),
+		_note("F#4", 1.0),
+		_note("G", 1.0),
+
+		_note("A4", 4.0),
+
+		_note("A4", 1.0),
+		_note("D4", 1.0),
+		_note("D5", 1.0),
+		_note("C5", 1.0),
+
+		_note("B4", 4.0),
+
+		_note("B4", 1.0),
+		_rest(1.0),
+		_note("A#4", 1.0),
+		_note("B4", 1.0),
+
+		_note("C5", 1.0),
+		_note("C5", 1.0),
+		_note("A4", 1.0),
+		_note("A4", 1.0),
+
+		_note("F#4", 3.0),
+		_note("C5", 1.0),
+
+		_note("B4", 2.0),
+		_note("B4", 2.0),
+
+		_note("B4", 3.0),
+		_note("E4", 1.0),
+
+		_note("A4", 3.0),
+		_note("G4", 1.0),
+
+		_note("F#4", 2.0),
+		_note("G4", 1.0),
+		_note("B3", 1.0),
+
+		_note("E4", 4.0),
+
+		_rest(1.0),
+		_note("E4", 1.0),
+		_note("F#4", 1.0),
+		_note("G4", 1.0)
+	]
+
+	harmonyA = [
+		_chord("Am7", 4.0),
+		_chord("D7", 4.0),
+		_chord("Gmaj7", 4.0),
+		_chord("Cmaj7", 4.0),
+		_chord("F#m7b5", 4.0),
+		_chord("B7", 4.0),
+		_chord("Emin", 4.0),
+		_chord("Emin", 4.0)
+	]
+
+	harmonyB = [
+		_chord("F#m7b5", 4.0),
+		_chord("B7", 4.0),
+		_chord("Emin", 4.0),
+		_chord("Emin", 4.0),
+		_chord("Amin7", 4.0),
+		_chord("D7", 4.0),
+		_chord("Gmaj7", 4.0),
+		_chord("Gmaj7", 4.0),
+		_chord("F#m7b5", 4.0),
+		_chord("B7", 4.0),
+		_chord("Emin7", 2.0),
+		_chord("E-7", 2.0),
+		_chord("Dmin7", 2.0),
+		_chord("D7", 2.0),
+		_chord("Cmaj7", 4.0),
+		_chord("B7", 4.0),
+		_chord("Emin", 4.0),
+		_chord("Emin", 4.0)
+
+	]
+
+	melody = stream.Part()
+	melody.append(key.Key("G"))
+	for part in [melodyA, deepcopy(melodyA), melodyB]:
+		for n in part:
+			melody.append(n)
+
+	harm = stream.Part()
+	harm.append(key.Key("G"))
+	for part in [harmonyA, deepcopy(harmonyA), harmonyB]:
+		for c in part:
+			harm.append(c)
+
+	return (harm, melody)
