@@ -70,6 +70,7 @@ class KGramSong:
 			diff = inDur.quarterLength - lst[start:(end-1)].duration.quarterLength
 			shortenedNote = copy.deepcopy(lst[end])
 			#shortenedNote.show('text')
+			print diff
 			shortenedNote.duration = duration.Duration(diff)
 			dcop = dcStream(lst[start:(end-1)])
 			dcop.append(shortenedNote)
