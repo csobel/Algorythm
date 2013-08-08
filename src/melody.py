@@ -29,7 +29,7 @@ class KGramSong:
 	def __init__(self, harmony, melody):
 		self.harmony = harmony.notesAndRests #a stream.Part
 		self.melody = melody.notesAndRests #stream.Part
-		self.minBeats = 4 #If the requested number of beats is below this, rest
+		self.minBeats = 8 #If the requested number of beats is below this, rest
 		self.maxBeats = 16 #Upper bound on length of k-gram; will split into multiple parts if necessary
 	def makeDS(self): #Assumes it's been init'd properly
 		#For all beats counts between min and max, calculate the ending note
@@ -67,7 +67,8 @@ class KGramSong:
 		if (getDuration(lst[start:end]) == inDur):
 			return copy.deepcopy(lst[start:end]).flat
 		else:
-			diff = inDur.quarterLength - lst[start:(end-1)].duration.quarterLength
+			diff = dcStream(lst[start:(end-1)]).duration.quarterLength - inDur.quarterLength#lst[start:(end-1)].duration.quarterLength
+			print diff
 			shortenedNote = copy.deepcopy(lst[end])
 			#shortenedNote.show('text')
 			print diff
