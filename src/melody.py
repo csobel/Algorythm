@@ -11,10 +11,11 @@ import random
 #Can't do a delta between start/end... different chords!
 #Brute force solution?
 
-def getDuration(stream):
-	if (len(stream) == 0):
-		return 0
-	return stream[len(stream)-1].offset - stream[0].offset# + stream[0].duration.quarterLength
+def getDuration(istream):
+	return dcStream(istream).duration.quarterLength
+	#if (len(istream) == 0):
+		#return 0
+	#return istream[len(istream)-1].offset - istream[0].offset + istream[0].duration.quarterLength
 def dcStream(istream):
 	strlen = len(istream)
 	retStream = stream.Part()
@@ -29,8 +30,8 @@ class KGramSong:
 	def __init__(self, harmony, melody):
 		self.harmony = harmony.notesAndRests #a stream.Part
 		self.melody = melody.notesAndRests #stream.Part
-		self.minBeats = 8 #If the requested number of beats is below this, rest
-		self.maxBeats = 16 #Upper bound on length of k-gram; will split into multiple parts if necessary
+		self.minBeats = 4 #If the requested number of beats is below this, rest
+		self.maxBeats = 4 #Upper bound on length of k-gram; will split into multiple parts if necessary
 	def makeDS(self): #Assumes it's been init'd properly
 		#For all beats counts between min and max, calculate the ending note
 		self.ds = []
@@ -49,6 +50,8 @@ class KGramSong:
 			while (j <= self.maxBeats and curIndex < melLen and not self.melody[startIndex].isRest):
 				while (getDuration(self.melody[startIndex:curIndex]) < j and curIndex < melLen):
 					curIndex = curIndex + 1
+				#print getDuration(self.melody[startIndex:curIndex])
+				#print dcStream(self.melody[startIndex:curIndex]).duration.quarterLength
 				if (curIndex < melLen and not (self.melody[curIndex].isRest)):
 					roflmao = self.carve(duration.Duration(j),startIndex,curIndex)
 					#print len(roflmao), roflmao.duration, getDuration(roflmao)
@@ -59,7 +62,11 @@ class KGramSong:
 			#print i, melLen
 		i=self.minBeats
 		while (i <= self.maxBeats):
-			#print i, len(self.ds[i-self.minBeats])
+			print i, len(self.ds[i-self.minBeats])
+			j=0
+			while (j < len(self.ds[i-self.minBeats])):
+				print self.ds[i-self.minBeats][j].duration
+				j = j + 1
 			i=i+1
 	def carve(self,inDur,start,end):
 		lst = self.melody#self.ds[duration-self.minBeats]
@@ -68,22 +75,19 @@ class KGramSong:
 			return copy.deepcopy(lst[start:end]).flat
 		else:
 			diff = dcStream(lst[start:(end-1)]).duration.quarterLength - inDur.quarterLength#lst[start:(end-1)].duration.quarterLength
-			print diff
 			shortenedNote = copy.deepcopy(lst[end])
 			#shortenedNote.show('text')
-			print diff
-			shortenedNote.duration = duration.Duration(diff)
+			oldDuration = shortenedNote.duration.quarterLength
+			shortenedNote.duration = duration.Duration(-1 * diff)
 			dcop = dcStream(lst[start:(end-1)])
+			#print dcop.duration.quarterLength
 			dcop.append(shortenedNote)
+			#print inDur.quarterLength, diff, dcop.duration.quarterLength, shortenedNote.duration.quarterLength, oldDuration
 			return dcop.flat
 	def splitGen(self,cs,ind):
 		#print ind
 		p1=self.generate(dcStream(cs[ind:]))
 		p2 = self.generate(dcStream(cs[:ind]))
-		#print p1,p2
-		#print len(p1),len(p2)
-		#p1.show('text')
-		#p2.show('text')
 		p1.append(p2)
 		return p1.flat
 	def generate(self,chordStream):
@@ -101,7 +105,6 @@ class KGramSong:
 			return self.splitGen(chordStream, len(chordStream)/2)
 		dur = int(dur)
 		rnd = int(random.random() * len(self.ds[dur-self.minBeats]))
-		print rnd, len(self.ds[dur-self.minBeats])
 		if (len(self.ds[dur-self.minBeats]) != 0):
 			return copy.deepcopy(self.ds[dur-self.minBeats][rnd]).flat
 		else:
@@ -132,7 +135,7 @@ def load_sample():
 	coolmel = testkgs.generate(har)
 	prod = stream.Score()
 	prod.append(coolmel)
-	coolmel.show('text')
+	#coolmel.show('text')
 	prod.append(har)
 	return prod
 	#mainStream = stream.Score()
