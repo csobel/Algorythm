@@ -11,6 +11,19 @@ import random
 #Can't do a delta between start/end... different chords!
 #Brute force solution?
 
+def absReduce(x,y):
+	if abs(x) < abs(y):
+		return x
+	else:
+		return y
+		
+def absReduceMax(x,y):
+	if abs(x) > abs(y):
+		return x
+	else:
+		return y
+		
+
 def getDuration(istream):
 	return dcStream(istream).duration.quarterLength
 	#if (len(istream) == 0):
@@ -24,14 +37,14 @@ def dcStream(istream):
 		curNote = copy.deepcopy(istream[i])
 		retStream.append(curNote)
 		i = i+1
-	return retStream
+	return retStream.flat
 	
 class KGramSong:
 	def __init__(self, harmony, melody):
 		self.harmony = harmony.notesAndRests #a stream.Part
 		self.melody = melody.notesAndRests #stream.Part
 		self.minBeats = 4 #If the requested number of beats is below this, rest
-		self.maxBeats = 4 #Upper bound on length of k-gram; will split into multiple parts if necessary
+		self.maxBeats = 6 #Upper bound on length of k-gram; will split into multiple parts if necessary
 	def makeDS(self): #Assumes it's been init'd properly
 		#For all beats counts between min and max, calculate the ending note
 		self.ds = []
@@ -63,10 +76,10 @@ class KGramSong:
 		i=self.minBeats
 		while (i <= self.maxBeats):
 			print i, len(self.ds[i-self.minBeats])
-			j=0
-			while (j < len(self.ds[i-self.minBeats])):
-				print self.ds[i-self.minBeats][j].duration
-				j = j + 1
+			#j=0
+			#while (j < len(self.ds[i-self.minBeats])):
+			#	print self.ds[i-self.minBeats][j].duration
+			#	j = j + 1
 			i=i+1
 	def carve(self,inDur,start,end):
 		lst = self.melody#self.ds[duration-self.minBeats]
@@ -86,38 +99,104 @@ class KGramSong:
 			return dcop.flat
 	def splitGen(self,cs,ind):
 		#print ind
-		p1=self.generate(dcStream(cs[ind:]))
+		print len(cs), ind
+		p1 = self.generate(dcStream(cs[ind:]))
 		p2 = self.generate(dcStream(cs[:ind]))
+		#offSet = p1[len(p1)-1].duration
+		#oldLen = len(p1)
+		#p2 = map(lambda thing: thing.offset = thing.offset - offSet, p2)
 		p1.append(p2)
+		#i = oldLen
 		return p1.flat
 	def generate(self,chordStream):
+		chordsOnly = chordStream.notesAndRests #Should only contain chords
+		if len(chordsOnly) == 0:
+			return stream.Part()
 		retStream = stream.Part()
-		dur = getDuration(chordStream)
-		if (dur < self.minBeats): #Just rest
-			fullRest = note.Rest()
-			fullRest.duration = duration.Duration(dur)
-			retStream.append(fullRest)
-			return copy.deepcopy(retStream.flat)
-		
-		#TEMPORARY: Greedily assume best music comes from a k-gram between chords.
-		#Try to generate a full-length k-gram.
-		if (dur > self.maxBeats):
-			return self.splitGen(chordStream, len(chordStream)/2)
-		dur = int(dur)
-		rnd = int(random.random() * len(self.ds[dur-self.minBeats]))
-		if (len(self.ds[dur-self.minBeats]) != 0):
-			return copy.deepcopy(self.ds[dur-self.minBeats][rnd]).flat
-		else:
-			restStr = stream.Part()
-			restNote = note.Rest(dur)
-			restStr.append(restNote)
-			return restStr
-		#return self.splitGen(chordStream, len(chordStream)/2)
-		#Just generate a k-gram based on the first and last chords.
-		#Otherwise, we actually have to generate some melody :D
-		
+		#dur = getDuration(chordStream)
+		ccsi = 0
+		repeatLast = False
+		while (ccsi < len(chordStream)):
+			ccse = ccsi
+			dur = 0
+			while (dur < self.minBeats and ccse < len(chordStream)):
+				dur = dur + chordStream[ccse].duration.quarterLength
+				ccse = ccse + 1
+			if (dur < self.minBeats):
+				break
+			#dur = chordStream[0].duration
+			curChord = chordStream[ccsi]
 			
-		
+			#TEMPORARY: Greedily assume best music comes from a k-gram between chords.
+			#Try to generate a full-length k-gram.
+			if (dur > self.maxBeats):
+				return self.splitGen(chordStream, len(chordStream)/2)
+			extraResting = dur #Add rests to this!
+			dur = int(dur)
+			print dur-self.minBeats
+			rnd = int(random.random() * len(self.ds[dur-self.minBeats]))
+			
+			targInd = dur-self.minBeats
+			if (len(self.ds[targInd]) != 0):
+				i=0
+				if not repeatLast:
+					maxDiff = 1000
+					actualDiff = 0
+					bestIndex = 0
+					while (i < len(self.ds[targInd])):
+						curMelFrag = self.ds[targInd][i]
+						#possDiff = min(curChord.pitches, key=lambda curPitch: abs((curPitch.midi - curMelFrag[0].midi) % 12))
+						diffMappings = map(lambda curPitch: (curPitch.midi % 12)- (curMelFrag[0].midi % 12), curChord.pitches)
+						possDiff = reduce(absReduce, diffMappings)
+						rndNum = random.random()
+						if (abs(possDiff) <= maxDiff):
+							rndVar = random.random()
+							if (abs(possDiff) < maxDiff or rndVar > 0.95):
+								#print possDiff, maxDiff, rndVar
+								maxDiff = abs(possDiff)
+								actualDiff = possDiff
+								bestIndex = i
+						#if (random.random() > 0.9):
+						#	maxDiff = abs(possDiff)
+						#	actualDiff = possDiff
+						#	bestIndex = i
+							#print "THUNDERDOME'D"
+						#print maxDiff, possDiff
+						#for chordPitch in curChord.pitches:
+						#	if (chordPitch == curMelFrag[0].pitch):
+						#		return dcStream(self.ds[targInd][i])
+						i=i+1
+				retMel = dcStream(self.ds[targInd][bestIndex])
+				print "Picked index ", targInd, bestIndex
+				#return copy.deepcopy(self.ds[targInd][rnd]).flat
+				#return dcStream(self.ds[targInd][bestIndex])
+				if (repeatLast or random.random() > 0.9):
+					if (repeatLast):
+						actualDiff = actualDiff - int((random.random() - 0.5) * 6)
+					#print "Transposing by ", actualDiff
+					retMel = retMel.transpose(actualDiff)
+				retStream.append(retMel)
+				#retStream = retStream.flat
+				extraResting = extraResting - self.ds[targInd][bestIndex].duration.quarterLength
+			#else:
+			if (extraResting != 0.0):
+				print "Making rest"
+				restStr = stream.Part()
+				#restNote = note.Rest(targInd)
+				restNote = note.Rest(extraResting)
+				restStr.append(restNote)
+				retStream.append(restStr)
+				retStream = retStream.flat
+				#return restStr
+			#return self.splitGen(chordStream, len(chordStream)/2)
+			#Just generate a k-gram based on the first and last chords.
+			#Otherwise, we actually have to generate some melody :D
+			ccsi = ccse
+			repeatLast = False
+			if (random.random() > 0.9):
+				repeatLast = True
+			
+		return retStream
 
 def test_on_prog(chordStrs):
     num_measures = 4
@@ -132,12 +211,13 @@ def load_sample():
 	(har,mel) = sample_input.IGotRhythm()
 	testkgs = KGramSong(har,mel)
 	testkgs.makeDS()
+	print "Finished making DS!"
 	coolmel = testkgs.generate(har)
 	prod = stream.Score()
 	prod.append(coolmel)
 	#coolmel.show('text')
 	prod.append(har)
-	return prod
+	return (prod, testkgs)
 	#mainStream = stream.Score()
 	
 	#Build k-gram data structure from melody using harmony info
