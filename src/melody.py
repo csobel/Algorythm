@@ -57,7 +57,7 @@ class KGramSong:
 			self.ds.append([])
 			i = i + 1
 		melLen = len(self.melody)
-		print melLen
+		#print melLen
 		i = 0
 		#self.melody.show('text')
 		while (i < melLen):
@@ -103,7 +103,7 @@ class KGramSong:
 			return dcop.flat
 	def splitGen(self,cs,ind):
 		#print ind
-		print len(cs), ind
+		#print len(cs), ind
 		p1 = self.generate(dcStream(cs[ind:]))
 		p2 = self.generate(dcStream(cs[:ind]))
 		#offSet = p1[len(p1)-1].duration
@@ -137,7 +137,7 @@ class KGramSong:
 				return self.splitGen(chordStream, len(chordStream)/2)
 			extraResting = dur #Add rests to this!
 			dur = int(dur)
-			print dur-self.minBeats
+			#print dur-self.minBeats
 			rnd = int(random.random() * len(self.ds[dur-self.minBeats]))
 			
 			targInd = dur-self.minBeats
@@ -171,7 +171,7 @@ class KGramSong:
 						#		return dcStream(self.ds[targInd][i])
 						i=i+1
 				retMel = dcStream(self.ds[targInd][bestIndex])
-				print "Picked index ", targInd, bestIndex
+				#print "Picked index ", targInd, bestIndex
 				#return copy.deepcopy(self.ds[targInd][rnd]).flat
 				#return dcStream(self.ds[targInd][bestIndex])
 				if (repeatLast or random.random() > 0.9):
@@ -184,7 +184,7 @@ class KGramSong:
 				extraResting = extraResting - self.ds[targInd][bestIndex].duration.quarterLength
 			#else:
 			if (extraResting != 0.0):
-				print "Making rest"
+				#print "Making rest"
 				restStr = stream.Part()
 				#restNote = note.Rest(targInd)
 				restNote = note.Rest(extraResting)
@@ -215,7 +215,7 @@ def load_sample():
 	(har,mel) = sample_input.IGotRhythm()
 	testkgs = KGramSong(har,mel)
 	testkgs.makeDS()
-	print "Finished making DS!"
+	#print "Finished making DS!"
 	coolmel = testkgs.generate(har)
 	prod = stream.Score()
 	prod.append(coolmel)
