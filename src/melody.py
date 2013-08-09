@@ -79,7 +79,7 @@ class KGramSong:
 			#print i, melLen
 		i=self.minBeats
 		while (i <= self.maxBeats):
-			print i, len(self.ds[i-self.minBeats])
+			#print i, len(self.ds[i-self.minBeats])
 			#j=0
 			#while (j < len(self.ds[i-self.minBeats])):
 			#	print self.ds[i-self.minBeats][j].duration
