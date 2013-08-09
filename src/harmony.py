@@ -81,8 +81,7 @@ class HarmonyPhrase:
     Class to help with improvising a segment using just
     the harmony of the song
     """
-    def __init__(self, chordProg, key):
-        self.chordProg = chordProg
+    def __init__(self, key):
         self.key = key
         self.motif_generator = MotifGenerator(key)
 
