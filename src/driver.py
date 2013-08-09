@@ -1,5 +1,6 @@
 from music21 import *
 import melody, harmony
+import sample_input
 
 #Grabs a deep copy of the given stream, while going as little over the given duration
 #as possible.  Also returns a deep copy of the 
@@ -12,8 +13,9 @@ def extractDuration(inStream, inDuration):
 	return (melody.dcStream(inStream[:endIndex]), melody.dcStream(inStream[endIndex:]))
 def makeSolo(melodyInput, harmonyInput):
 	key = melodyInput[0]
-	kgram = melody.KGramSong(melodyInput, harmonyInput)
-	harmonyMaker = HarmonyPhrase(key)
+	kgram = melody.KGramSong(harmonyInput, melodyInput)
+	kgram.makeDS()
+	harmonyMaker = harmony.HarmonyPhrase(key)
 	qbs = 64 #16 measures before each switch
 	useMelody = True
 	generatedSong = stream.Score()
@@ -24,8 +26,13 @@ def makeSolo(melodyInput, harmonyInput):
 		if useMelody:
 			generatedMelody.append(kgram.generate(curStream))
 		else:
-			generatedMelody.append(curStream.duration, curStream)
+			generatedMelody.append(harmonyMaker.create_phrase(curStream.duration.quarterLength, curStream))
 		useMelody = not useMelody
 			
 	generatedSong.append(generatedMelody)
 	generatedSong.append(harmonyInput)
+	return generatedSong
+
+def IGotRhythm():
+	(harmony, melody) = sample_input.IGotRhythm()
+	return makeSolo(melody, harmony)
