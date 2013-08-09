@@ -60,3 +60,7 @@ def IGotRhythmWithMelody():
 
 def AutumnLeavesWithMelody():
 	return WithMelody(sample_input.AutumnLeaves)
+
+if __name__ == '__main__':
+	song = IGotRhythmWithMelody()
+	song.show("midi")
