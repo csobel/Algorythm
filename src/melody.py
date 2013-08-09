@@ -21,9 +21,8 @@ def absReduceMax(x,y):
 	if abs(x) > abs(y):
 		return x
 	else:
-		return y
+		return y	
 		
-
 def getDuration(istream):
 	return dcStream(istream).duration.quarterLength
 	#if (len(istream) == 0):
@@ -38,6 +37,11 @@ def dcStream(istream):
 		retStream.append(curNote)
 		i = i+1
 	return retStream.flat
+	
+def countCs(chordStream):
+	dupStr = dcStream(chordStream)
+	return dupStr.duration.quarterLength
+	
 	
 class KGramSong:
 	def __init__(self, harmony, melody):
