@@ -11,7 +11,9 @@ def extractDuration(inStream, inDuration):
 		endIndex = endIndex + 1
 	return (melody.dcStream(inStream[:endIndex]), melody.dcStream(inStream[endIndex:]))
 def makeSolo(melodyInput, harmonyInput):
+	key = melodyInput[0]
 	kgram = melody.KGramSong(melodyInput, harmonyInput)
+	harmonyMaker = HarmonyPhrase(key)
 	qbs = 64 #16 measures before each switch
 	useMelody = True
 	generatedSong = stream.Score()
@@ -22,7 +24,8 @@ def makeSolo(melodyInput, harmonyInput):
 		if useMelody:
 			generatedMelody.append(kgram.generate(curStream))
 		else:
-			#omg it's corey's junk
+			generatedMelody.append(curStream.duration, curStream)
+		useMelody = not useMelody
 			
 	generatedSong.append(generatedMelody)
 	generatedSong.append(harmonyInput)
