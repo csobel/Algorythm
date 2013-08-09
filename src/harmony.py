@@ -27,7 +27,6 @@ def split_stream(chords, dur):
 	while dur_sum + chords[idx].duration.quarterLength <= dur and idx < len(chords) -1:
 		dur_sum += chords[idx].duration.quarterLength
 		idx += 1
-	print "chords had len {} splitting at {} dur was {}".format(len(chords), idx, dur)
 	return (chords[:idx], chords[idx:])
 
 def nearest_chord_note(prev_note, chord, direction):
@@ -247,7 +246,6 @@ class MotifGenerator:
 				r = note.Rest()
 				r.duration = duration.Duration(n.duration.quarterLength)
 				ret_notes.append(r)
-		print "ret_notes len {} and motif len {}".format(len(ret_notes), len(self.curr_motif))
 		return ret_notes
 
 

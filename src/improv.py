@@ -25,16 +25,18 @@ def scaleInRange(lower, upper, keyStr = "C"):
     """
     return scale.MajorScale(keyStr).getPitches(lower, upper)
 
-def closestPitch(mchord, mnote, src=""):
+def closestPitch(mchord, mnote):
     """
     finds the pitch in mchord that is closest to mnote,
     but not equal to mnote
     """
     mpitches = mchord.pitches
-    pitchInts = [i*12 + mpitch.pitchClass for i in range(3,7) for mpitch in mpitches]
+    pitchInts = [i*12 + mpitch.pitchClass for i in range(5,8) for mpitch in mpitches]
     pitchInts = [p for p in pitchInts if p != mnote.midi]
     retInt = min(pitchInts, key=lambda x:abs(x-mnote.midi))
     retPitch = pitch.Pitch()
+    if retPitch.midi < 12*4:
+        print "BAD {}".format(retPitch)
     retPitch.midi = retInt
     return retPitch
     
@@ -48,7 +50,7 @@ def pickPitch(curr_note, dest_chord):
     # surronding the note
     delta = random.randint(-6, 6)
     trans_note = curr_note.transpose(delta)
-    result = closestPitch(dest_chord, trans_note, 'pickPitch')
+    result = closestPitch(dest_chord, trans_note)
     return result
     
 
@@ -67,7 +69,7 @@ def next(part, curr_note, next_chord):
     intermediate = note.Note()
     intermediate.duration = duration.Duration(1.0)
     if abs(target.midi - curr_note.midi) < 2:
-        intermediate.pitch = closestPitch(next_chord, target, 'next')
+        intermediate.pitch = closestPitch(next_chord, target)
     else:
         if random.randint(0,1):
             delta = -1 if curr_note.midi < target.midi else 1
